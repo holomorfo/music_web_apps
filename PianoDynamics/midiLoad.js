@@ -56,7 +56,7 @@ function onMIDIMessage(message) {
 var notePosY=0;
 function setup(){
   createCanvas(710, 700);
-  
+  // prueba de commit
 }
 
 function draw(){
