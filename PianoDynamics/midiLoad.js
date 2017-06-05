@@ -54,19 +54,25 @@ function onMIDIMessage(message) {
 // P5
 
 var notePosY=0;
+var w = window.innerWidth;
+var h = window.innerHeight;
+var scaledTime =0;
 function setup(){
-  createCanvas(710, 700);
+
+  createCanvas(w,h);
   // prueba de commit
 }
 
 function draw(){
-  background(250);
-  translate(-context.currentTime, 0);
+  background(200);
+  scaledTime= map(context.currentTime,0,5,0,w)
+  translate(-scaledTime, 0);
   for(var i=0; i<listNotes.length;i++ ){
-    notePosX= listNotes[i].timeStamp;
-    notePosY= map(listNotes[i].midNum,90,40,100 ,700);
-    notePosY=listNotes[i].midNum;
+    notePosX= listNotes[i].timeStamp+w/2;
+    //notePosX= map(listNotes[i].timeStamp,0,5,0,w)
+    notePosY= map(listNotes[i].midNum,0 ,120,50 ,h-50);
+    //notePosY=listNotes[i].midNum;
     fill(0);
-    ellipse(notePosX,notePosY,10,10);
+    ellipse(notePosX,notePosY,1,1);
   }
 }
