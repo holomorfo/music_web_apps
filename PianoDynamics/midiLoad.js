@@ -64,7 +64,7 @@ function draw(){
   translate(-context.currentTime, 0);
   for(var i=0; i<listNotes.length;i++ ){
     notePosX= listNotes[i].timeStamp;
-    //notePosY= map(listNotes[i].midNum,90,40,100 ,700);
+    notePosY= map(listNotes[i].midNum,90,40,100 ,700);
     notePosY=listNotes[i].midNum;
     fill(0);
     ellipse(notePosX,notePosY,10,10);
