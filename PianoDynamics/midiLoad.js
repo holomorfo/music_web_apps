@@ -2,17 +2,24 @@
 // https://www.keithmcmillen.com/blog/making-music-in-the-browser-web-midi-api/
 
 class Note {
-  constructor(midiNote, vel, timeStart) {
-    this.midNum = midiNote;
-    this.velocity = vel;
-    this.timeStamp= timeStart;
-  }
+    constructor(midiNote, vel, timeStart) {
+        this.midNum = midiNote;
+        this.velocity = vel;
+        this.timeStamp = timeStart;
+        this.isClosed = false;
+    }
+
+    setEndTime(endTm) {
+        this.endTime = endTm-this.timeStamp;
+        this.isClosed = true;
+    }
+
 }
 
 var midi, data;
 var currNote, currVel;
 var context = new AudioContext();
-var listNotes =[new Note(60,60,0)];
+var listNotes = [];
 
 // request MIDI access
 if (navigator.requestMIDIAccess) {
@@ -32,7 +39,7 @@ function onMIDISuccess(midiAccess) {
     // loop over all available inputs and listen for any MIDI input
     for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
         // each time there is a midi message call the onMIDIMessage function
-        console.log('Input '+input);
+        console.log('Input ' + input);
         input.value.onmidimessage = onMIDIMessage;
     }
 }
@@ -44,35 +51,60 @@ function onMIDIFailure(error) {
 
 function onMIDIMessage(message) {
     data = message.data; // this gives us our [command/channel, note, velocity] data.
-    console.log('MIDI data', data, context.currentTime); // MIDI data [144, 63, 73]
-    currNote = data[1];
-    currVel = data[2];
-    listNotes.push( new Note(currNote,currVel,context.currentTime));
+    if (128 <= data[0] && data[0] < 144) {
+        console.log('MIDI Note Off', data, context.currentTime); // MIDI data [144, 63, 73]
+        // Run list, remove elements    
+        for (var i = 0; i < listNotes.length; i++) {
+            if (!listNotes[i].isClosed && listNotes[i].midNum == data[1]) {
+                console.log('close note');
+                listNotes[i].setEndTime(context.currentTime);
+            }
+        }
+    } else if (144 <= data[0] && data[0] < 160) {
+        console.log('MIDI Note On', data, context.currentTime); // MIDI data [144, 63, 73]
+        currNote = data[1];
+        currVel = data[2];
+        listNotes.push(new Note(currNote, currVel, context.currentTime));
+    }
+    //console.log('MIDI data', data, context.currentTime); // MIDI data [144, 63, 73]
 }
 
 //==========================================00
 // P5
 
-var notePosY=0;
-var w = window.innerWidth;
-var h = window.innerHeight;
-var scaledTime =0;
-function setup(){
+var notePosY = 0;
+var w = window.innerWidth * 0.75;
+var h = window.innerHeight * 0.75;
+var scaledTime = 0;
+var secsWindow = 5;
+var offsetX = w * 0.85;
 
-  createCanvas(w,h);
-  // prueba de commit
+function setup() {
+    createCanvas(w, h);
+    // prueba de commit
 }
 
-function draw(){
-  background(200);
-  scaledTime= map(context.currentTime,0,5,0,w)
-  translate(-scaledTime, 0);
-  for(var i=0; i<listNotes.length;i++ ){
-    notePosX= listNotes[i].timeStamp+w/2;
-    //notePosX= map(listNotes[i].timeStamp,0,5,0,w)
-    notePosY= map(listNotes[i].midNum,0 ,120,50 ,h-50);
-    //notePosY=listNotes[i].midNum;
-    fill(0);
-    ellipse(notePosX,notePosY,1,1);
-  }
+function draw() {
+    background(200);
+    scaledTime = context.currentTime;
+    scaledTime = map(context.currentTime, 0, secsWindow, 0, w)
+    translate(-scaledTime, 0);
+    //scale(10,1);
+    for (var i = 0; i < listNotes.length; i++) {
+        //notePosX= listNotes[i].timeStamp+w/2;
+        notePosX = map(listNotes[i].timeStamp, 0, secsWindow, 0, w) + offsetX;
+        if (listNotes[i].isClosed) {
+            noteWidthX = map(listNotes[i].endTime, 0, secsWindow, 0, w);
+        } else {
+            console.log('not closed');
+            tempWidth = context.currentTime-listNotes[i].timeStamp
+            noteWidthX = map(tempWidth, 0, secsWindow, 0, w);
+        }
+        notePosY = map(listNotes[i].midNum, 0, 120, h - 50, 50);
+        //notePosY=listNotes[i].midNum;
+        fill(0);
+        rectMode(CORNER);
+        noteSizeY = map(listNotes[i].velocity, 0, 127, 0, 50);
+        rect(notePosX, notePosY, noteWidthX, -noteSizeY);
+    }
 }
