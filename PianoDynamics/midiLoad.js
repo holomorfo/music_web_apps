@@ -10,7 +10,7 @@ class Note {
     }
 
     setEndTime(endTm) {
-        this.endTime = endTm-this.timeStamp;
+        this.endTime = endTm - this.timeStamp;
         this.isClosed = true;
     }
 
@@ -52,20 +52,24 @@ function onMIDIFailure(error) {
 function onMIDIMessage(message) {
     data = message.data; // this gives us our [command/channel, note, velocity] data.
     if (128 <= data[0] && data[0] < 144) {
-        console.log('MIDI Note Off', data, context.currentTime); // MIDI data [144, 63, 73]
+        //console.log('MIDI Note Off', data, context.currentTime); // MIDI data [144, 63, 73]
         // Run list, remove elements    
         for (var i = 0; i < listNotes.length; i++) {
             if (!listNotes[i].isClosed && listNotes[i].midNum == data[1]) {
-                console.log('close note');
+                //console.log('close note');
                 listNotes[i].setEndTime(context.currentTime);
             }
         }
     } else if (144 <= data[0] && data[0] < 160) {
-        console.log('MIDI Note On', data, context.currentTime); // MIDI data [144, 63, 73]
+        //console.log('MIDI Note On', data, context.currentTime); // MIDI data [144, 63, 73]
         currNote = data[1];
         currVel = data[2];
+        if (listNotes.length > 50) {
+            listNotes.shift();
+        }
         listNotes.push(new Note(currNote, currVel, context.currentTime));
     }
+    //console.log("num list "+listNotes.length);
     //console.log('MIDI data', data, context.currentTime); // MIDI data [144, 63, 73]
 }
 
@@ -73,15 +77,15 @@ function onMIDIMessage(message) {
 // P5
 
 var notePosY = 0;
-var w = window.innerWidth * 0.75;
-var h = window.innerHeight * 0.75;
+var w = window.innerWidth * 0.95;
+var h = window.innerHeight * 0.95;
 var scaledTime = 0;
 var secsWindow = 5;
 var offsetX = w * 0.85;
 
 function setup() {
     createCanvas(w, h);
-    // prueba de commit
+    colorMode(HSB, 50);
 }
 
 function draw() {
@@ -96,15 +100,19 @@ function draw() {
         if (listNotes[i].isClosed) {
             noteWidthX = map(listNotes[i].endTime, 0, secsWindow, 0, w);
         } else {
-            console.log('not closed');
-            tempWidth = context.currentTime-listNotes[i].timeStamp
+            //console.log('not closed');
+            tempWidth = context.currentTime - listNotes[i].timeStamp
             noteWidthX = map(tempWidth, 0, secsWindow, 0, w);
         }
-        notePosY = map(listNotes[i].midNum, 0, 120, h - 50, 50);
+        notePosY = map(listNotes[i].midNum, 30, 95, h - 50, 50);
         //notePosY=listNotes[i].midNum;
-        fill(0);
         rectMode(CORNER);
-        noteSizeY = map(listNotes[i].velocity, 0, 127, 0, 50);
+        noteSizeY = map(listNotes[i].velocity, 0, 100, 0, 20);
+        colorMap = map(listNotes[i].velocity, 0, 100, 0, 50);
+        fill(colorMap, 50, 50);
         rect(notePosX, notePosY, noteWidthX, -noteSizeY);
+        textSize(22);
+        fill(0, 50, 0);
+        text("" + listNotes[i].velocity, notePosX, notePosY - 50)
     }
 }
