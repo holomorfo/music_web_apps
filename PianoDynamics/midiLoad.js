@@ -20,7 +20,7 @@ var midi, data;
 var currNote, currVel;
 var context = new AudioContext();
 var listNotes = [];
-
+var sustainPressef = false;
 // request MIDI access
 if (navigator.requestMIDIAccess) {
     navigator.requestMIDIAccess({
@@ -34,7 +34,7 @@ if (navigator.requestMIDIAccess) {
 function onMIDISuccess(midiAccess) {
     // when we get a succesful response, run this code
     midi = midiAccess; // this is our raw MIDI data, inputs, outputs, and sysex status
-    console.log('Success MIDI');
+    console.log('Success MIDI __');
     var inputs = midi.inputs.values();
     // loop over all available inputs and listen for any MIDI input
     for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
@@ -50,25 +50,41 @@ function onMIDIFailure(error) {
 }
 
 function onMIDIMessage(message) {
+    //console.log('test');
     data = message.data; // this gives us our [command/channel, note, velocity] data.
     if (128 <= data[0] && data[0] < 144) {
-        //console.log('MIDI Note Off', data, context.currentTime); // MIDI data [144, 63, 73]
+        console.log('MIDI Note Off', data, context.currentTime); // MIDI data [144, 63, 73]
         // Run list, remove elements    
-        for (var i = 0; i < listNotes.length; i++) {
-            if (!listNotes[i].isClosed && listNotes[i].midNum == data[1]) {
-                //console.log('close note');
-                listNotes[i].setEndTime(context.currentTime);
+        //if (sustainPressef) {
+            for (var i = 0; i < listNotes.length; i++) {
+                if (!listNotes[i].isClosed && listNotes[i].midNum == data[1]) {
+                    //console.log('close note');
+                    listNotes[i].setEndTime(context.currentTime);
+                }
             }
-        }
+        //}
     } else if (144 <= data[0] && data[0] < 160) {
-        //console.log('MIDI Note On', data, context.currentTime); // MIDI data [144, 63, 73]
+        console.log('MIDI Note On', data, context.currentTime); // MIDI data [144, 63, 73]
         currNote = data[1];
         currVel = data[2];
         if (listNotes.length > 50) {
             listNotes.shift();
         }
         listNotes.push(new Note(currNote, currVel, context.currentTime));
+    } else if (data[0] == 176) {
+        console.log('MIDI Note soft pedal', data, context.currentTime); // MIDI data [144, 63, 73]
+        // if (data[2] > 0) {
+        //     sustainPressef = false;
+        //     for (var i = 0; i < listNotes.length; i++) {
+        //         //console.log('close note');
+        //         listNotes[i].setEndTime(context.currentTime);
+        //     }
+        // } else {
+        //     sustainPressef = true;
+
+        // }
     }
+
     //console.log("num list "+listNotes.length);
     //console.log('MIDI data', data, context.currentTime); // MIDI data [144, 63, 73]
 }
@@ -86,6 +102,7 @@ var offsetX = w * 0.85;
 function setup() {
     createCanvas(w, h);
     colorMode(HSB, 50);
+    console.log('ahi te va');
 }
 
 function draw() {
