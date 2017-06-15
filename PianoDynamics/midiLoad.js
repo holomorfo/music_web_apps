@@ -84,7 +84,8 @@ function onMIDIMessage(message) {
 
         // }
     }
-
+    
+    // prueba
     //console.log("num list "+listNotes.length);
     //console.log('MIDI data', data, context.currentTime); // MIDI data [144, 63, 73]
 }
