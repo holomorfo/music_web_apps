@@ -1,6 +1,6 @@
 
 // https://www.keithmcmillen.com/blog/making-music-in-the-browser-web-midi-api/
-
+console.log('Testing');
 class Note {
     constructor(midiNote, vel, timeStart) {
         this.midNum = midiNote;
