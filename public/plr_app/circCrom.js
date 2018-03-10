@@ -90,9 +90,9 @@ function keyPressed() {
             break;
     }
 
-    oscA.freq(midiToFreq(actual.notas[0]+12*5));
-    oscB.freq(midiToFreq(actual.notas[1]+12*5));
-    oscC.freq(midiToFreq(actual.notas[2]+12*5));
+    oscA.freq(midiToFreq(actual.notas[0] + 12 * 5));
+    oscB.freq(midiToFreq(actual.notas[1] + 12 * 5));
+    oscC.freq(midiToFreq(actual.notas[2] + 12 * 5));
     envA.play();
     envB.play();
     envC.play();
@@ -102,5 +102,67 @@ function keyPressed() {
     redraw();
 
     console.log(keyCode);
+
+    // VexFlow
+    VF = Vex.Flow;
+
+    const staff = document.getElementById('boo');
+    while (staff.hasChildNodes()) {
+        staff.removeChild(staff.lastChild);
+    }
+
+    // Create an SVG renderer and attach it to the DIV element named "boo".
+    var vf = new VF.Factory({ renderer: { elementId: 'boo' } });
+    var score = vf.EasyScore();
+    var system = vf.System();
+
+    system.addStave({
+        voices: [score.voice(score.notes('(' + midToName(actual.notas[0]) + '4 '+midToName(actual.notas[1]) + '4 ' + midToName(actual.notas[2]) + '4)/q, A4/r, A4/r, A4/r'))]
+    }).addClef('treble').addTimeSignature('4/4');
+
+    vf.draw();
+
 }
 
+function midToName(number) {
+    var val = "c";
+    switch (number) {
+        case 0:
+            val = "c";
+            break;
+        case 1:
+            val = "c#";
+            break;
+        case 2:
+            val = "d";
+            break;
+        case 3:
+            val = "e#";
+            break;
+        case 4:
+            val = "E";
+            break;
+        case 5:
+            val = "f";
+            break;
+        case 6:
+            val = "f#";
+            break;
+        case 7:
+            val = "g";
+            break;
+        case 8:
+            val = "g#";
+            break;
+        case 9:
+            val = "a";
+            break;
+        case 10:
+            val = "a#";
+            break;
+        case 11:
+            val = "b";
+            break;
+    }
+    return val;
+}
