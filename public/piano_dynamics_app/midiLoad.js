@@ -49,6 +49,22 @@ function onMIDIFailure(error) {
     console.log("No access to MIDI devices or your browser doesn't support WebMIDI API. Please use WebMIDIAPIShim " + error);
 }
 
+function midiOffMessage(listNotes, number) {
+    for (var i = 0; i < listNotes.length; i++) {
+        if (!listNotes[i].isClosed && listNotes[i].midNum == number) {
+            //console.log('close note');
+            listNotes[i].setEndTime(context.currentTime);
+        }
+    }
+}
+
+function midiOnMessage(listNotes, note, vel) {
+    if (listNotes.length > 50) {
+        listNotes.shift();
+    }
+    listNotes.push(new Note(note, vel, context.currentTime));
+}
+
 function onMIDIMessage(message) {
     //console.log('test');
     data = message.data; // this gives us our [command/channel, note, velocity] data.
@@ -56,21 +72,13 @@ function onMIDIMessage(message) {
         console.log('MIDI Note Off', data, context.currentTime); // MIDI data [144, 63, 73]
         // Run list, remove elements    
         //if (sustainPressef) {
-            for (var i = 0; i < listNotes.length; i++) {
-                if (!listNotes[i].isClosed && listNotes[i].midNum == data[1]) {
-                    //console.log('close note');
-                    listNotes[i].setEndTime(context.currentTime);
-                }
-            }
+        midiOffMessage(listNotes, data[1])
         //}
     } else if (144 <= data[0] && data[0] < 160) {
         console.log('MIDI Note On', data, context.currentTime); // MIDI data [144, 63, 73]
         currNote = data[1];
         currVel = data[2];
-        if (listNotes.length > 50) {
-            listNotes.shift();
-        }
-        listNotes.push(new Note(currNote, currVel, context.currentTime));
+        midiOnMessage(listNotes, currNote, currVel);
     } else if (data[0] == 176) {
         console.log('MIDI Note soft pedal', data, context.currentTime); // MIDI data [144, 63, 73]
         // if (data[2] > 0) {
@@ -84,7 +92,7 @@ function onMIDIMessage(message) {
 
         // }
     }
-    
+
     // prueba
     //console.log("num list "+listNotes.length);
     //console.log('MIDI data', data, context.currentTime); // MIDI data [144, 63, 73]
@@ -99,11 +107,27 @@ var h = window.innerHeight * 0.95;
 var scaledTime = 0;
 var secsWindow = 5;
 var offsetX = w * 0.85;
+var osc, env;
 
 function setup() {
     createCanvas(w, h);
     colorMode(HSB, 50);
     console.log('ahi te va');
+
+    osc = new p5.Oscillator('sine');
+    osc.amp(0); // set amplitude
+    osc.freq(440); // set frequency
+    osc.start(); // start oscillating
+
+    // Instantiate the envelope
+    env = new p5.Env();
+    osc.amp(env);
+    // set attackTime, decayTime, sustainRatio, releaseTime
+    env.setADSR(0.001, 0.5, 0.1, 0.5);
+
+    // set attackLevel, releaseLevel
+    env.setRange(1, 0);
+
 }
 
 function draw() {
@@ -131,6 +155,71 @@ function draw() {
         rect(notePosX, notePosY, noteWidthX, -noteSizeY);
         textSize(22);
         fill(0, 50, 0);
-        text("" + listNotes[i].velocity, notePosX, notePosY - 50)
+        text("" + int(listNotes[i].velocity), notePosX, notePosY - 50)
     }
 }
+
+function keyPressed() {
+    //    osc.freq(freq);
+    var note = keyToFreq();
+    var vol = map(mouseY, 0, height, 127, 0);
+    console.log("Freq " + note);
+    midiOnMessage(listNotes, note, vol);
+    osc.freq(midiToFreq(note));
+    //env.play(osc);
+    env.triggerAttack();
+  
+    //env.play(osc);
+    //    env.triggerAttack();
+}
+
+function keyReleased() {
+
+    midiOffMessage(listNotes, keyToFreq())
+    env.triggerRelease();
+}
+
+function keyToFreq() {
+    freq = 0;
+    switch (key) {
+        case 'Q':
+            freq = midiToFreq(60);
+            break;
+        case '2':
+            freq = midiToFreq(61);
+            break;
+        case 'W':
+            freq = midiToFreq(62);
+            break;
+        case '3':
+            freq = midiToFreq(63);
+            break;
+        case 'E':
+            freq = midiToFreq(64);
+            break;
+        case 'R':
+            freq = midiToFreq(65);
+            break;
+        case '5':
+            freq = midiToFreq(66);
+            break;
+        case 'T':
+            freq = midiToFreq(67);
+            break;
+        case '6':
+            freq = midiToFreq(68);
+            break;
+        case 'Y':
+            freq = midiToFreq(69);
+            break;
+        case '7':
+            freq = midiToFreq(70);
+            break;
+        case 'U':
+            freq = midiToFreq(71);
+            break;
+    }
+    return freqToMidi(freq);
+}
+
+//  midiOffMessage(listNotes,data[1])
