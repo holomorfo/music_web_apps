@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- <script src='https://unpkg.com/vexflow/releases/vexflow-min.js'></script> -->
+
     <title>Document</title>
 </head>
 
@@ -16,7 +18,27 @@
         <li>
             <a href="public/plr_app/index.html">PLR</a>
         </li>
+        <li>
+            <a href="public/2dcounterpoint/index.html">2D</a>
+        </li>
     </ul>
+    <!-- <div id="boo"></div> -->
+    <!-- <script>
+        var vf = new Vex.Flow.Factory({
+            renderer: { elementId: 'boo', width: 500, height: 200 }
+        });
+
+        var score = vf.EasyScore();
+        var system = vf.System();
+
+        system.addStave({
+            voices: [
+                score.voice(score.notes('C#5/q', { stem: 'up' })),
+                score.voice(score.notes('C#4/q', { stem: 'down' }))
+            ]
+        }).addClef('treble').addTimeSignature('1/4');
+        vf.draw();    </script> -->
+
 
 </body>
 
